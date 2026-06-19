@@ -21,12 +21,23 @@ def save_job_to_tracker(job_title: str, company: str, location: str, link: str, 
         Confirmation message with tracker update.
     
     """
+    import re
+    # Clean markdown formatting from all fields
+    def clean_text(text):
+        text = re.sub(r'\*+', '', text)  # Remove * and **
+        text = re.sub(r'#+\s*', '', text)  # Remove # headers
+        text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)  # [text](url) -> text
+        return text.strip()
+
+    job_title = clean_text(job_title)
+    company = clean_text(company)
+    location = clean_text(location)
 
     new_row = {
         "job_title": job_title,
         "company": company,
         "location": location,
-        "link": link,
+        "link": link.strip(),
         "status": status,
         "date_added": datetime.now().strftime("%Y-%m-%d %H:%M")
     }
@@ -61,10 +72,10 @@ def get_job_tracker() -> str:
     result = f"Job Tracker ({len(df)} jobs): \n\n"
     for i, row in df.iterrows():
         result += (
-            f"{i+1}. {row['job_title'] @ {row['company']}}\n"
+            f"{i+1}. {row['job_title']} @ {row['company']}\n"
             f" Location: {row['location']} | Status: {row['status']}\n"
             f" Added: {row['date_added']}\n"
-            f" Line: {row['link']}\n\n"
+            f" Link: {row['link']}\n\n"
         )
 
     return result
@@ -116,11 +127,12 @@ def get_portfolio() -> str:
     if df.empty:
         return "No portfolios saved yet."
 
+    result = f"Portfolio Tracker ({len(df)} portfolios):\n\n"
     for i, row in df.iterrows():
         result += (
-            f"{i+1}. Risk: {row['risk_level']} | Amount: ${row[investment_amount]}\n"
+            f"{i+1}. Risk: {row['risk_level']} | Amount: ${row['investment_amount']}\n"
             f" Allocation: {row['allocations']}\n"
-            f" Status: {row['status']} | Create: {row['date_created']}\n\n"
+            f" Status: {row['status']} | Created: {row['date_created']}\n\n"
         )
     
     return result

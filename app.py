@@ -358,6 +358,17 @@ with st.sidebar:
             f.write(uploaded_file.getbuffer())
         st.success(f"✓ {uploaded_file.name}")
         st.session_state["resume_path"] = file_path
+        
+        # Extract skills silently (cached)
+        if "resume_skills" not in st.session_state or st.session_state.get("resume_file") != uploaded_file.name:
+            import sys
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from src.tools.resume_parser import extract_text_from_pdf, extract_skills_from_resume
+            with st.spinner("Processing resume..."):
+                resume_text = extract_text_from_pdf(file_path)
+                skills_str = extract_skills_from_resume(resume_text)
+                st.session_state["resume_skills"] = [s.strip() for s in skills_str.split(",")]
+                st.session_state["resume_file"] = uploaded_file.name
 
     st.divider()
 
@@ -440,23 +451,39 @@ if st.session_state.waiting_for_input:
     with col1:
         if st.button("✅ Approve", use_container_width=True, type="primary"):
             with st.spinner("Processing..."):
-                response = requests.post(f"{API_URL}/resume", json={
+                full_response = ""
+                with requests.post(f"{API_URL}/resume/stream", json={
                     "thread_id": st.session_state.thread_id,
                     "feedback": "yes"
-                })
-                data = response.json()
-                st.session_state.messages.append({"role": "assistant", "content": data["response"]})
+                }, stream=True, timeout=120) as response:
+                    for line in response.iter_lines(decode_unicode=True):
+                        if line and line.startswith("data: "):
+                            data = json.loads(line[6:])
+                            if data.get("node") == "done":
+                                break
+                            if data.get("content"):
+                                full_response = data["content"]
+                if full_response:
+                    st.session_state.messages.append({"role": "assistant", "content": full_response})
                 st.session_state.waiting_for_input = False
                 st.rerun()
     with col2:
         if st.button("❌ Reject", use_container_width=True):
             with st.spinner("Processing..."):
-                response = requests.post(f"{API_URL}/resume", json={
+                full_response = ""
+                with requests.post(f"{API_URL}/resume/stream", json={
                     "thread_id": st.session_state.thread_id,
                     "feedback": "no"
-                })
-                data = response.json()
-                st.session_state.messages.append({"role": "assistant", "content": data["response"]})
+                }, stream=True, timeout=120) as response:
+                    for line in response.iter_lines(decode_unicode=True):
+                        if line and line.startswith("data: "):
+                            data = json.loads(line[6:])
+                            if data.get("node") == "done":
+                                break
+                            if data.get("content"):
+                                full_response = data["content"]
+                if full_response:
+                    st.session_state.messages.append({"role": "assistant", "content": full_response})
                 st.session_state.waiting_for_input = False
                 st.rerun()
     with col3:
@@ -464,12 +491,20 @@ if st.session_state.waiting_for_input:
         if feedback:
             if st.button("📝 Send", use_container_width=True):
                 with st.spinner("Processing..."):
-                    response = requests.post(f"{API_URL}/resume", json={
+                    full_response = ""
+                    with requests.post(f"{API_URL}/resume/stream", json={
                         "thread_id": st.session_state.thread_id,
                         "feedback": feedback
-                    })
-                    data = response.json()
-                    st.session_state.messages.append({"role": "assistant", "content": data["response"]})
+                    }, stream=True, timeout=120) as response:
+                        for line in response.iter_lines(decode_unicode=True):
+                            if line and line.startswith("data: "):
+                                data = json.loads(line[6:])
+                                if data.get("node") == "done":
+                                    break
+                                if data.get("content"):
+                                    full_response = data["content"]
+                    if full_response:
+                        st.session_state.messages.append({"role": "assistant", "content": full_response})
                     st.session_state.waiting_for_input = False
                     st.rerun()
 
@@ -480,6 +515,8 @@ if "pending_prompt" in st.session_state:
         st.markdown(prompt)
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
+        status_placeholder = st.empty()
+        status_placeholder.markdown("⏳ *Analyzing your request...*")
         full_response = ""
         waiting = False
         try:
@@ -500,11 +537,22 @@ if "pending_prompt" in st.session_state:
                             waiting = True
                             break
                         elif content:
+                            status_placeholder.empty()
                             if node == "supervisor":
                                 response_placeholder.markdown("🧠 *Routing to the right agent...*")
                             else:
                                 full_response = content
                                 response_placeholder.markdown(full_response)
+                        else:
+                            node_status = {
+                                "guardrail": "🛡️ *Analyzing...*",
+                                "supervisor": "🧠 *Processing...*",
+                                "job_search": "💼 *Searching job listings...*",
+                                "ai_news": "📰 *Fetching latest news...*",
+                                "finance": "💰 *Analyzing market data...*",
+                                "general": "💭 *Composing response...*",
+                            }
+                            status_placeholder.markdown(node_status.get(node, "⚙️ *Processing...*"))
             if full_response:
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
             if waiting:
@@ -515,18 +563,24 @@ if "pending_prompt" in st.session_state:
 
 # --- Chat Input ---
 if prompt := st.chat_input("Ask me anything — jobs, AI news, or finance...", disabled=st.session_state.waiting_for_input):
-    # Append resume context if relevant
-    if "resume_path" in st.session_state and any(word in prompt.lower() for word in ["resume", "score", "match", "skills"]):
-        prompt += f" [Resume file: {st.session_state['resume_path']}]"
+    # Store the clean prompt for display
+    display_prompt = prompt
+    
+    # Append skills to the API message only (not displayed)
+    if "resume_skills" in st.session_state:
+        skills_str = ", ".join(st.session_state["resume_skills"])
+        prompt += f"\n\n[User's resume skills: {skills_str}. Based on these skills from the user's resume, find relevant jobs. Mention that these results are based on their resume skills.]"
 
-    # Display user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    # Display user message (clean, without skills)
+    st.session_state.messages.append({"role": "user", "content": display_prompt})
     with st.chat_message("user"):
-        st.markdown(prompt)
+        st.markdown(display_prompt)
 
     # Call streaming API
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
+        status_placeholder = st.empty()
+        status_placeholder.markdown("⏳ *Analyzing your request...*")
         full_response = ""
         waiting = False
 
@@ -550,11 +604,24 @@ if prompt := st.chat_input("Ask me anything — jobs, AI news, or finance...", d
                             waiting = True
                             break
                         elif content:
+                            status_placeholder.empty()
                             if node == "supervisor":
                                 response_placeholder.markdown("🧠 *Routing to the right agent...*")
                             else:
                                 full_response = content
                                 response_placeholder.markdown(full_response)
+                        else:
+                            # Update status based on which node is running
+                            node_status = {
+                                "guardrail": "🛡️ *Checking safety...*",
+                                "supervisor": "🧠 *Understanding your intent...*",
+                                "job_search": "💼 *Searching job listings...*",
+                                "ai_news": "📰 *Fetching latest news...*",
+                                "finance": "💰 *Analyzing market data...*",
+                                "general": "💭 *Composing response...*",
+                            }
+                            status_msg = node_status.get(node, "⚙️ *Processing...*")
+                            status_placeholder.markdown(status_msg)
 
             if full_response:
                 st.session_state.messages.append({"role": "assistant", "content": full_response})

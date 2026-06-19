@@ -157,7 +157,7 @@ def job_finalize_node(state: AgentState) -> AgentState:
                         "company": current_company,
                         "location": current_location or "N/A",
                         "link": current_link or "N/A",
-                        "status": "Applied"
+                        "status": "Saved"
                     })
                     saved_count += 1
                 current_title = title_match.group(1).strip()
@@ -179,13 +179,13 @@ def job_finalize_node(state: AgentState) -> AgentState:
                 "company": current_company,
                 "location": current_location or "N/A",
                 "link": current_link or "N/A",
-                "status": "Applied"
+                "status": "Saved"
             })
             saved_count += 1
         
-        return {"messages": [("assistant", f"{saved_count} job(s) marked as applied and saved to your tracker!")]}
+        return {"messages": [("assistant", f"{saved_count} job(s) saved to your tracker!")]}
     elif approved == "no":
-        return {"messages": [("assistant", "No jobs marked as applied. Let me know if you'd like to search again.")]}
+        return {"messages": [("assistant", "No worries! Those jobs weren't saved. Would you like me to:\n\n- 🔍 Search for different roles or locations?\n- 📝 Adjust the search criteria (seniority, remote, etc.)?\n- 📄 Score your resume against a specific role?\n\nJust let me know how I can help!")]}
     else:
         # User gave specific feedback — use LLM to respond intelligently
         messages = state.get("messages", [])
@@ -246,7 +246,7 @@ def finance_finalize_node(state: AgentState) -> AgentState:
         
         return {"messages": [("assistant", "Portfolio finalized and saved to your tracker!")]}
     elif approved == "no":
-        return {"messages": [("assistant", "Portfolio discarded. Let me know if you'd like to try a different allocation.")]}
+        return {"messages": [("assistant", "Portfolio discarded. Would you like me to:\n\n- 📊 Try a different risk level (low/medium/high)?\n- 📈 Check market trends for specific stocks first?\n- 💰 Adjust the investment amount?\n\nI'm happy to build another option for you!")]}
     else:
         # User gave specific feedback — use LLM to respond intelligently
         messages = state.get("messages", [])

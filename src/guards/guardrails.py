@@ -94,9 +94,7 @@ def run_guardrails(message: str) -> dict:
     if not injection["safe"]:
         return {"passed": False, "message": injection["reason"]}
     
-    # 3. Topic check (uses LLM)
-    topic = check_topic_allowed(message)
-    if not topic["allowed"]:
-        return {"passed": False, "message": topic["reason"]}
+    # Skip LLM-based topic check — it's too unreliable and blocks valid queries
+    # The supervisor already handles routing, no need to double-check topic here
     
     return {"passed": True, "message": ""}

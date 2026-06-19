@@ -250,9 +250,3 @@ Agent Nexus exposes its tools as an MCP server for use with any MCP-compatible c
 - **MCP protocol** — exposing tools for cross-client interoperability
 - **Memory/Checkpointing** — stateful conversations with MemorySaver
 - **Tool-calling agents** with real API integrations
-
----
-
-## License
-
-MIT

@@ -22,7 +22,7 @@ def extract_skills_from_resume(resume_text:str) -> str:
         f"Resume:\n{resume_text[:3000]}"
     )
 
-    resposne = LLm.invoke(prompt)
+    resposne = LLM.invoke(prompt)
     return resposne.content.strip()
 
 @tool

@@ -1,160 +1,571 @@
-from fastapi import FastAPI 
-from pydantic import BaseModel
-from src.graph.graph import build_graph
-from langgraph.types import Command
-from fastapi.responses import StreamingResponse
+import streamlit as st
+import requests
+import uuid
+import os
+import pandas as pd
 import json
+from datetime import datetime
 
-app = FastAPI(title="Agent Nexus")
+# --- Config ---
+API_URL = "http://localhost:8000"
+UPLOAD_DIR = "data/resumes"
+JOB_TRACKER_FILE = "data/job_tracker.csv"
+PORTFOLIO_FILE = "data/portfolio.csv"
 
-graph = build_graph()
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-sessions = {}
+# --- Session State ---
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = str(uuid.uuid4())
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "waiting_for_input" not in st.session_state:
+    st.session_state.waiting_for_input = False
 
-class ChatRequest(BaseModel):
-    message: str
-    thread_id: str = "default"
+# --- Page Config ---
+st.set_page_config(page_title="Agent Nexus", page_icon="🤖", layout="wide")
 
+# --- Greeting ---
+def get_greeting():
+    hour = datetime.now().hour
+    if hour < 12:
+        return "Good Morning"
+    elif hour < 17:
+        return "Good Afternoon"
+    else:
+        return "Good Evening"
 
-class ResumeRequest(BaseModel):
-    thread_id: str
-    feedback: str
-
-@app.post("/chat")
-async def chat(request: ChatRequest):
-    """Send a message and get the full response"""
-
-    config = {"configurable": {"thread_id": request.thread_id}}
-
-    response = graph.invoke(
-        {"messages": [("user", request.message)]},
-        config = config
-    )
-
-    state = graph.get_state(config)
-
-    waiting_for_input = bool(state.next)
-
-    return {
-        "response": response["messages"][-1].content,
-        "thread_id": request.thread_id,
-        "waiting_for_input": waiting_for_input,
-        "interrupted_at": state.next[0] if waiting_for_input else None
+# --- Heavy CSS ---
+st.markdown("""
+<style>
+    /* ===== MAIN HEADER ===== */
+    .main-header {
+        text-align: center;
+        padding: 1.5rem 0 1rem 0;
+    }
+    
+    /* Chat font size */
+    .stChatMessage p, .stChatMessage li, .stChatMessage span {
+        font-size: 1.05rem !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* ===== AGENT BADGES ===== */
+    .agent-badges {
+        display: flex;
+        justify-content: center;
+        gap: 0.8rem;
+        margin-top: 0.5rem;
+    }
+    .agent-badge {
+        padding: 0.4rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid;
+    }
+    .badge-job { 
+        background: rgba(59,130,246,0.1); 
+        color: #2563eb; 
+        border-color: rgba(59,130,246,0.3);
+    }
+    .badge-news { 
+        background: rgba(16,185,129,0.1); 
+        color: #059669; 
+        border-color: rgba(16,185,129,0.3);
+    }
+    .badge-finance { 
+        background: rgba(245,158,11,0.1); 
+        color: #d97706; 
+        border-color: rgba(245,158,11,0.3);
     }
 
-@app.post("/chat/stream")
-async def chat_stream(request: ChatRequest):
-    """Stream agent responses as Server-Sent Events"""
-
-    config = {"configurable": {"thread_id": request.thread_id}}
-
-    def event_stream():
-
-        for event in graph.stream(
-            {
-                "messages": [("user",request.message)]
-            },
-            config = config,
-            stream_mode ="updates"
-        ):
-            for node_name, node_output in event.items():
-                #stream each nodes output as it completes
-                data = {
-                    "node": node_name,
-                    "content": ""
-                }
-
-                if "messages" in node_output:
-
-                    messages = node_output["messages"]
-
-                    if messages:
-                        last_msg = messages[-1]
-                        #handle both AI messages and tuples
-                        if hasattr(last_msg, "content"):
-                            data["content"] = last_msg.content
-                        elif isinstance(last_msg, tuple):
-                            data["content"] = last_msg[1]
-            
-            yield f"data: {json.dumps(data)}\n\n"
-        
-        state= graph.get_state(config)
-        if state.next:
-            yield f"data: {json.dumps({'node': 'interrupt', 'content': 'Waiting for your input...', 'waiting_for_input': True})}\n\n"
-                           
-        yield f"data: {json.dumps({'node': 'done', 'content': ''})}\n\n"
+    /* ===== SIDEBAR ===== */
+    section[data-testid="stSidebar"],
+    section[data-testid="stSidebar"] > div,
+    div[data-testid="stSidebar"],
+    div[data-testid="stSidebar"] > div:first-child {
+        background: #f8f9fb !important;
+        border-right: 1px solid #e5e7eb !important;
+    }
     
-    return StreamingResponse(event_stream(), media_type = "text/event-stream")
-
-
-@app.post("/resume")
-async def resume(request: ResumeRequest):
-    """Resume a paused graph with human feedback."""
-
-    config = {"configurable": {"thread_id":request.thread_id}}
-
-    state = graph.get_state(config)
-
-    if not state.next:
-        return {"error": "no pending interrupt for this session."}
-
-    response = graph.invoke(
-        Command(resume = request.feedback),
-        config = config
-    )
-
-    return {
-        "response": response["messages"][-1].content,
-        "thread_id": request.thread_id,
-        "approved": request.feedback.lower().strip() == "yes"
+    /* All sidebar text */
+    div[data-testid="stSidebar"] p,
+    div[data-testid="stSidebar"] span,
+    div[data-testid="stSidebar"] label,
+    div[data-testid="stSidebar"] li {
+        color: #374151 !important;
+        font-size: 1rem;
+    }
+    
+    /* Dividers */
+    div[data-testid="stSidebar"] hr {
+        border: none !important;
+        border-top: 1px solid #e5e7eb !important;
+        margin: 1.5rem 0 !important;
+    }
+    
+    /* Sidebar brand title */
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.2rem 0 1rem 0;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 1rem;
+    }
+    .sidebar-brand .logo {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    .sidebar-brand .name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111827 !important;
+        letter-spacing: -0.3px;
+    }
+    
+    /* Section labels */
+    .section-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6366f1 !important;
+        padding: 0.5rem 0.8rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.3rem;
+        background: #eef2ff;
+        border-radius: 6px;
+        border-left: 3px solid #6366f1;
+    }
+    
+    /* New Chat button - force override all Streamlit button styles */
+    div[data-testid="stSidebar"] button {
+        background: #6366f1 !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.7rem 1.2rem !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        transition: all 0.15s ease;
+        box-shadow: 0 2px 6px rgba(99,102,241,0.3);
+    }
+    div[data-testid="stSidebar"] button:hover {
+        background: #4f46e5 !important;
+        box-shadow: 0 4px 10px rgba(99,102,241,0.4);
+    }
+    
+    /* Upload button - override with green (higher specificity) */
+    section[data-testid="stSidebar"] [data-testid="stFileUploader"] button,
+    div[data-testid="stSidebar"] [data-testid="stFileUploader"] button,
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] button {
+        background: #10b981 !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        padding: 0.5rem 1rem !important;
+        box-shadow: 0 2px 6px rgba(16,185,129,0.3) !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stFileUploader"] button:hover,
+    div[data-testid="stSidebar"] [data-testid="stFileUploader"] button:hover {
+        background: #059669 !important;
+        box-shadow: 0 4px 10px rgba(16,185,129,0.4) !important;
+    }
+    div[data-testid="stSidebar"] [data-testid="stFileUploader"] small {
+        color: #9ca3af !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Selectbox dropdown - fix visibility */
+    div[data-testid="stSidebar"] [data-testid="stSelectbox"] {
+        color: #374151 !important;
+    }
+    div[data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {
+        background: #ffffff !important;
+        border: 2px solid #6366f1 !important;
+        border-radius: 8px !important;
+        color: #374151 !important;
+        font-size: 0.95rem !important;
+    }
+    div[data-testid="stSidebar"] [data-testid="stSelectbox"] svg {
+        fill: #374151 !important;
+    }
+    div[data-testid="stSidebar"] [data-testid="stSelectbox"] input {
+        color: #374151 !important;
+    }
+    div[data-testid="stSidebar"] [role="listbox"] {
+        background: #ffffff !important;
+        border: 1px solid #d1d5db !important;
+    }
+    div[data-testid="stSidebar"] [role="option"] {
+        color: #374151 !important;
+    }
+    div[data-testid="stSidebar"] [role="option"]:hover {
+        background: #eef2ff !important;
+    }
+    
+    /* Metrics */
+    div[data-testid="stSidebar"] [data-testid="stMetricValue"] {
+        color: #111827 !important;
+        font-size: 1.4rem !important;
+        font-weight: 700 !important;
+    }
+    div[data-testid="stSidebar"] [data-testid="stMetricLabel"] {
+        color: #9ca3af !important;
+        font-size: 0.7rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Quick prompt buttons - outlined style */
+    div[data-testid="stSidebar"] button[kind="secondary"] {
+        background: #ffffff !important;
+        color: #374151 !important;
+        border: 1px solid #d1d5db !important;
+        font-weight: 500 !important;
+        font-size: 0.85rem !important;
+        text-align: left !important;
+        box-shadow: none !important;
+    }
+    div[data-testid="stSidebar"] button[kind="secondary"]:hover {
+        background: #eef2ff !important;
+        border-color: #6366f1 !important;
+        color: #4f46e5 !important;
+        box-shadow: none !important;
+    }
+    
+    /* Info/alert in sidebar */
+    div[data-testid="stSidebar"] .stAlert {
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 0.8rem !important;
+    }
+    div[data-testid="stSidebar"] .stAlert p {
+        color: #6b7280 !important;
+        font-size: 0.9rem !important;
+    }
+    
+    /* Dataframe */
+    div[data-testid="stSidebar"] .stDataFrame {
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
     }
 
-@app.post("resume/stream")
-async def resume_stream(request: ResumeRequest):
-    """Resume with streaming output"""
+    /* ===== WELCOME CARD ===== */
+    .welcome-card {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        border: 1px solid rgba(99,102,241,0.2);
+        border-radius: 20px;
+        padding: 2.5rem;
+        text-align: center;
+        margin: 1.5rem 0 2rem 0;
+    }
+    .welcome-card h2 {
+        margin: 0 0 0.5rem 0;
+        font-size: 2rem;
+        color: #312e81;
+    }
+    .welcome-card p {
+        margin: 0;
+        color: #4338ca;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    .welcome-features {
+        display: flex;
+        justify-content: center;
+        gap: 1.2rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    .welcome-feature {
+        background: white;
+        border: 1px solid rgba(99,102,241,0.15);
+        border-radius: 16px;
+        padding: 1.2rem 1.5rem;
+        text-align: center;
+        min-width: 180px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+    }
+    .welcome-feature:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(99,102,241,0.15);
+    }
+    .welcome-feature .icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .welcome-feature .label {
+        font-size: 0.85rem;
+        color: #4338ca;
+        font-weight: 500;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-    config = {"configurable":{"thread_id":request.thread_id}}
+# --- Header ---
+st.markdown("""
+<div class="main-header">
+    <div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;">
+        <img src="https://img.icons8.com/fluency/48/artificial-intelligence.png" width="36"/>
+        <h1 style="margin:0;font-size:2rem;">Agent Nexus</h1>
+    </div>
+    <div class="agent-badges">
+        <span class="agent-badge badge-job">💼 Job Search</span>
+        <span class="agent-badge badge-news">📰 AI News</span>
+        <span class="agent-badge badge-finance">💰 Finance</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-    state = graph.get_state(config)
+# --- Sidebar ---
+with st.sidebar:
+    st.markdown("""
+    <div class="sidebar-brand">
+        <img src="https://img.icons8.com/fluency/48/artificial-intelligence.png" width="28"/>
+        <span class="name"><h1>Agent Nexus</h1></span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    if not state.next:
-        return {"error": "No pending interrupt of this session."}
+    if st.button("＋  New Chat", use_container_width=True, type="primary"):
+        st.session_state.thread_id = str(uuid.uuid4())
+        st.session_state.messages = []
+        st.session_state.waiting_for_input = False
+        st.rerun()
 
-    def event_stream():
-        for event in graph.stream(
-            Command(resume=request.feedback),
-            config = config,
-            stream_mode = "updates"
-        ):
-            for node_name, node_output in event.items():
-                data = {"node": node_name, "content": ""}
-                if "messages" in node_output:
-                    messages = node_output["messages"]
-                    if messages and hasattr(messages[-1], "content"):
-                        data["content"] = messages[-1].content
+    st.divider()
 
-                yield f"data: {json.dumps(data)}\n\n"
-        
-        yield f"data: {json.dumps({'node': 'done', 'content': ''})}\n\n"
+    # Resume Upload
+    st.markdown('<div class="section-label">Resume</div>', unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("Drop your resume here", type=["pdf"], label_visibility="collapsed")
+
+    if uploaded_file:
+        file_path = os.path.join(UPLOAD_DIR, uploaded_file.name)
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.success(f"✓ {uploaded_file.name}")
+        st.session_state["resume_path"] = file_path
+
+    st.divider()
+
+    # Trackers
+    st.markdown('<div class="section-label">Trackers</div>', unsafe_allow_html=True)
+    tracker_tab = st.selectbox("Select tracker:", ["Job Tracker", "Portfolio"], label_visibility="collapsed")
+
+    if tracker_tab == "Job Tracker":
+        if os.path.exists(JOB_TRACKER_FILE):
+            df = pd.read_csv(JOB_TRACKER_FILE)
+            st.metric("Total Jobs", len(df))
+            st.dataframe(
+                df[["job_title", "company", "status"]],
+                use_container_width=True,
+                hide_index=True
+            )
+        else:
+            st.info("No jobs tracked yet.")
+
+    elif tracker_tab == "Portfolio":
+        if os.path.exists(PORTFOLIO_FILE):
+            df = pd.read_csv(PORTFOLIO_FILE)
+            st.metric("Portfolios", len(df))
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        else:
+            st.info("No portfolios saved yet.")
+
+    st.divider()
+    st.markdown('<div class="section-label">Try these</div>', unsafe_allow_html=True)
     
-    return StreamingResponse(event_stream(), media_type = "text/event-stream")
-
-@app.get("/history/{thread_id}")
-async def get_history(thread_id: str):
-    """Get conversation history for a thread."""
-    config = {"configurable": {"thread_id": thread_id}}
-    state = graph.get_state(config)
-
-    if not state.values.get("messages"):
-        return {"messages": []}
-
-    messages = [
-        {"role": msg.type, "content": msg.content}
-        for msg in state.values["messages"]
+    quick_prompts = [
+        "Find me ML engineer jobs in NYC",
+        "Latest news on AI agents",
+        "Build a high-risk portfolio with $5000"
     ]
-    return {"messages": messages}
+    
+    for qp in quick_prompts:
+        if st.button(qp, key=f"qp_{qp}", use_container_width=True):
+            st.session_state.messages.append({"role": "user", "content": qp})
+            # Trigger chat by storing in session and rerunning
+            st.session_state["pending_prompt"] = qp
+            st.rerun()
 
+# --- Welcome Message ---
+if not st.session_state.messages:
+    greeting = get_greeting()
+    st.markdown(f"""
+    <div class="welcome-card">
+        <h2>{greeting}! 👋</h2>
+        <p>I'm <strong>Agent Nexus</strong> — your AI-powered multi-agent assistant.<br/>
+        I orchestrate specialized agents to help you with career, knowledge, and wealth.</p>
+        <div class="welcome-features">
+            <div class="welcome-feature">
+                <div class="icon">💼</div>
+                <div class="label">Find jobs & track applications</div>
+            </div>
+            <div class="welcome-feature">
+                <div class="icon">📰</div>
+                <div class="label">Latest AI news & insights</div>
+            </div>
+            <div class="welcome-feature">
+                <div class="icon">💰</div>
+                <div class="label">Build & manage portfolios</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-@app.get("/health")
-async def health():
-    return {"status": "running", "agents": ["job_search", "ai_news", "finance"]}
+# --- Chat Display ---
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# --- Human-in-the-Loop ---
+if st.session_state.waiting_for_input:
+    st.divider()
+    st.warning("⏸️ Agent is waiting for your approval to proceed.")
+
+    col1, col2, col3 = st.columns([1, 1, 2])
+    with col1:
+        if st.button("✅ Approve", use_container_width=True, type="primary"):
+            with st.spinner("Processing..."):
+                response = requests.post(f"{API_URL}/resume", json={
+                    "thread_id": st.session_state.thread_id,
+                    "feedback": "yes"
+                })
+                data = response.json()
+                st.session_state.messages.append({"role": "assistant", "content": data["response"]})
+                st.session_state.waiting_for_input = False
+                st.rerun()
+    with col2:
+        if st.button("❌ Reject", use_container_width=True):
+            with st.spinner("Processing..."):
+                response = requests.post(f"{API_URL}/resume", json={
+                    "thread_id": st.session_state.thread_id,
+                    "feedback": "no"
+                })
+                data = response.json()
+                st.session_state.messages.append({"role": "assistant", "content": data["response"]})
+                st.session_state.waiting_for_input = False
+                st.rerun()
+    with col3:
+        feedback = st.text_input("Or provide specific feedback:", placeholder="e.g., change allocation to 60% stocks")
+        if feedback:
+            if st.button("📝 Send", use_container_width=True):
+                with st.spinner("Processing..."):
+                    response = requests.post(f"{API_URL}/resume", json={
+                        "thread_id": st.session_state.thread_id,
+                        "feedback": feedback
+                    })
+                    data = response.json()
+                    st.session_state.messages.append({"role": "assistant", "content": data["response"]})
+                    st.session_state.waiting_for_input = False
+                    st.rerun()
+
+# --- Handle quick prompt clicks ---
+if "pending_prompt" in st.session_state:
+    prompt = st.session_state.pop("pending_prompt")
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    with st.chat_message("assistant"):
+        response_placeholder = st.empty()
+        full_response = ""
+        waiting = False
+        try:
+            with requests.post(
+                f"{API_URL}/chat/stream",
+                json={"message": prompt, "thread_id": st.session_state.thread_id},
+                stream=True,
+                timeout=120
+            ) as response:
+                for line in response.iter_lines(decode_unicode=True):
+                    if line and line.startswith("data: "):
+                        data = json.loads(line[6:])
+                        node = data.get("node", "")
+                        content = data.get("content", "")
+                        if node == "done":
+                            break
+                        elif node == "interrupt":
+                            waiting = True
+                            break
+                        elif content:
+                            if node == "supervisor":
+                                response_placeholder.markdown("🧠 *Routing to the right agent...*")
+                            else:
+                                full_response = content
+                                response_placeholder.markdown(full_response)
+            if full_response:
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
+            if waiting:
+                st.session_state.waiting_for_input = True
+                st.rerun()
+        except Exception as e:
+            st.error(f"Something went wrong: {str(e)}")
+
+# --- Chat Input ---
+if prompt := st.chat_input("Ask me anything — jobs, AI news, or finance...", disabled=st.session_state.waiting_for_input):
+    # Append resume context if relevant
+    if "resume_path" in st.session_state and any(word in prompt.lower() for word in ["resume", "score", "match", "skills"]):
+        prompt += f" [Resume file: {st.session_state['resume_path']}]"
+
+    # Display user message
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Call streaming API
+    with st.chat_message("assistant"):
+        response_placeholder = st.empty()
+        full_response = ""
+        waiting = False
+
+        try:
+            with requests.post(
+                f"{API_URL}/chat/stream",
+                json={"message": prompt, "thread_id": st.session_state.thread_id},
+                stream=True,
+                timeout=120
+            ) as response:
+                for line in response.iter_lines(decode_unicode=True):
+                    if line and line.startswith("data: "):
+                        data = json.loads(line[6:])
+
+                        node = data.get("node", "")
+                        content = data.get("content", "")
+
+                        if node == "done":
+                            break
+                        elif node == "interrupt":
+                            waiting = True
+                            break
+                        elif content:
+                            if node == "supervisor":
+                                response_placeholder.markdown("🧠 *Routing to the right agent...*")
+                            else:
+                                full_response = content
+                                response_placeholder.markdown(full_response)
+
+            if full_response:
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+            if waiting:
+                st.session_state.waiting_for_input = True
+                st.rerun()
+
+        except requests.exceptions.ConnectionError:
+            st.error("❌ Cannot connect to the API. Make sure the backend is running: `uvicorn api:app --reload --port 8000`")
+        except requests.exceptions.Timeout:
+            st.error("⏱️ Request timed out. The agent might be processing a complex query.")
+        except Exception as e:
+            st.error(f"Something went wrong: {str(e)}")

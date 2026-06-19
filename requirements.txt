@@ -11,3 +11,7 @@ python-dotenv
 yfinance
 langchain-tavily
 mcp[cli]
+requests
+pandas
+pypdf
+streamlit

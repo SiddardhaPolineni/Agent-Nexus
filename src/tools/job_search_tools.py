@@ -27,7 +27,7 @@ def search_jobs(query:str, location:str = "United States") -> str:
 
     params = {"query": f"{query} in {location}","num_pages":1}
     response = requests.get(RAPID_JSEARCH_URL,headers=headers,params=params)
-    print(response)
+
     if response.status_code != 200:
         return f"Error fetching the jobs"
     

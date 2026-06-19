@@ -7,7 +7,7 @@ from config import JOB_TRACKER_FILE, PORTFOLIO_FILE
 
 
 @tool
-def save_job_to_tracker(job_title: str, company: str, location: str, link: str, link: str, status: str = "Saved") -> str:
+def save_job_to_tracker(job_title: str, company: str, location: str, link: str, status: str = "Saved") -> str:
     """Save a job to the local job tracker spreadsheet
     
     Args:
@@ -58,7 +58,7 @@ def get_job_tracker() -> str:
     if df.empty:
         return "Job tracker is empty"
 
-    result = f"Job Tracker ({len{df}} jobs): \n\n"
+    result = f"Job Tracker ({len(df)} jobs): \n\n"
     for i, row in df.iterrows():
         result += (
             f"{i+1}. {row['job_title'] @ {row['company']}}\n"

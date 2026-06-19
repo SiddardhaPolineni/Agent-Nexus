@@ -344,13 +344,18 @@ with st.sidebar:
         st.session_state.thread_id = str(uuid.uuid4())
         st.session_state.messages = []
         st.session_state.waiting_for_input = False
+        st.session_state.pop("resume_path", None)
+        st.session_state.pop("resume_skills", None)
+        st.session_state.pop("resume_file", None)
+        st.session_state["uploader_key"] = str(uuid.uuid4())
         st.rerun()
 
     st.divider()
 
     # Resume Upload
     st.markdown('<div class="section-label">Resume</div>', unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Drop your resume here", type=["pdf"], label_visibility="collapsed")
+    uploader_key = st.session_state.get("uploader_key", "default_uploader")
+    uploaded_file = st.file_uploader("Drop your resume here", type=["pdf"], label_visibility="collapsed", key=uploader_key)
 
     if uploaded_file:
         file_path = os.path.join(UPLOAD_DIR, uploaded_file.name)
@@ -374,12 +379,11 @@ with st.sidebar:
 
     # Trackers
     st.markdown('<div class="section-label">Trackers</div>', unsafe_allow_html=True)
-    tracker_tab = st.selectbox("Select tracker:", ["Job Tracker", "Portfolio"], label_visibility="collapsed")
+    tracker_tab = st.selectbox("Select tracker:", ["Select tracker type", "Job Tracker", "Portfolio"], label_visibility="collapsed")
 
     if tracker_tab == "Job Tracker":
         if os.path.exists(JOB_TRACKER_FILE):
             df = pd.read_csv(JOB_TRACKER_FILE)
-            st.metric("Total Jobs", len(df))
             st.dataframe(
                 df[["job_title", "company", "status"]],
                 use_container_width=True,
@@ -391,7 +395,6 @@ with st.sidebar:
     elif tracker_tab == "Portfolio":
         if os.path.exists(PORTFOLIO_FILE):
             df = pd.read_csv(PORTFOLIO_FILE)
-            st.metric("Portfolios", len(df))
             st.dataframe(df, use_container_width=True, hide_index=True)
         else:
             st.info("No portfolios saved yet.")
@@ -566,8 +569,9 @@ if prompt := st.chat_input("Ask me anything — jobs, AI news, or finance...", d
     # Store the clean prompt for display
     display_prompt = prompt
     
-    # Append skills to the API message only (not displayed)
-    if "resume_skills" in st.session_state:
+    # Only append resume skills if the query seems job-related
+    job_keywords = ["job", "jobs", "role", "roles", "resume", "career", "position", "hiring", "apply", "score", "match", "skills", "engineer", "developer"]
+    if "resume_skills" in st.session_state and any(kw in prompt.lower() for kw in job_keywords):
         skills_str = ", ".join(st.session_state["resume_skills"])
         prompt += f"\n\n[User's resume skills: {skills_str}. Based on these skills from the user's resume, find relevant jobs. Mention that these results are based on their resume skills.]"
 

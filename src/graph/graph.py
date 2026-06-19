@@ -248,7 +248,7 @@ def finance_finalize_node(state: AgentState) -> AgentState:
     elif approved == "no":
         return {"messages": [("assistant", "Portfolio discarded. Would you like me to:\n\n- 📊 Try a different risk level (low/medium/high)?\n- 📈 Check market trends for specific stocks first?\n- 💰 Adjust the investment amount?\n\nI'm happy to build another option for you!")]}
     else:
-        # User gave specific feedback — use LLM to respond intelligently
+        # User gave specific feedback — check if they want to save
         messages = state.get("messages", [])
         portfolio_details = ""
         for msg in reversed(messages):
@@ -256,12 +256,45 @@ def finance_finalize_node(state: AgentState) -> AgentState:
                 portfolio_details = msg.content
                 break
         
+        # Detect save intent in feedback
+        save_keywords = ["save", "like this", "looks good", "perfect", "finalize", "keep", "go with this", "approve"]
+        if any(kw in feedback.lower() for kw in save_keywords):
+            # Parse and save the portfolio
+            risk_level = "medium"
+            investment_amount = 0.0
+            import re
+            for line in portfolio_details.lower().split("\n"):
+                if "risk" in line and "high" in line:
+                    risk_level = "high"
+                elif "risk" in line and "low" in line:
+                    risk_level = "low"
+                if "$" in line and ("amount" in line or "invest" in line):
+                    amounts = re.findall(r'\$[\d,]+\.?\d*', line)
+                    if amounts:
+                        investment_amount = float(amounts[0].replace("$", "").replace(",", ""))
+            
+            # If amount not found in that line, search all lines for any dollar amount
+            if investment_amount == 0.0:
+                all_amounts = re.findall(r'\$[\d,]+\.?\d*', portfolio_details)
+                if all_amounts:
+                    investment_amount = float(all_amounts[0].replace("$", "").replace(",", ""))
+            
+            save_portfolio.invoke({
+                "risk_level": risk_level,
+                "investment_amount": investment_amount,
+                "allocations": portfolio_details[:500]
+            })
+            
+            return {"messages": [("assistant", "Portfolio saved to your tracker! You can view it in the Trackers section in the sidebar.")]}
+        
+        # Otherwise, use LLM to respond to their feedback
         response = LLM.invoke(
             f"You are a personal finance assistant. The user was shown this portfolio suggestion:\n\n"
             f"{portfolio_details[:1000]}\n\n"
             f"The user provided this feedback: '{feedback}'\n\n"
             f"Respond helpfully. If they want changes to the allocation, suggest an updated portfolio. "
-            f"If they want more info on a specific asset, provide it."
+            f"If they want more info on a specific asset, provide it. "
+            f"Do NOT say you saved anything unless you actually did."
         )
         return {"messages": [("assistant", response.content)]}
 

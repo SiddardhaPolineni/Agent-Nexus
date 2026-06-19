@@ -6,7 +6,7 @@ from config import TAVILY_API_KEY
 search_tool = TavilySearch(max_results = 5, tavily_api_key = TAVILY_API_KEY)
 
 @tool
-def search_ai_news(quesry:str) -> str:
+def search_ai_news(query:str) -> str:
     """Search the web for the latest AI news and articles.
 
     Args:
@@ -17,7 +17,14 @@ def search_ai_news(quesry:str) -> str:
     """
 
 
-    results = search_tool.invoke(query)
+    response = search_tool.invoke(query)
+
+    if isinstance(response, list):
+        results = response
+    elif isinstance(response, dict):
+        results = response.get("results",[])
+    else:
+        return "unexpected response format"
 
     if not results:
         return "No news articles found."
@@ -25,10 +32,14 @@ def search_ai_news(quesry:str) -> str:
     output = ""
 
     for i, result in enumerate(results, 1):
-        output += (
-            f"{i}. {result.get('title', 'N/A')}\n"
-            f" URL: {result.get('url', 'N/A')}\n"
-            f" Summary: {result.get('content', 'N/A')[:200]}\n\n"
-        )
+        if isinstance(result, dict):
+
+            output += (
+                f"{i}. {result.get('title', 'N/A')}\n"
+                f" URL: {result.get('url', 'N/A')}\n"
+                f" Summary: {result.get('content', 'N/A')[:200]}\n\n"
+            )
+        else:
+            output += f"{i}. {str(result)[:200]}\n\n"
     
     return output

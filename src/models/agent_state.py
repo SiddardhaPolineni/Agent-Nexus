@@ -7,4 +7,5 @@ class AgentState(TypedDict):
     next_agent: str
     current_agent: str
     human_feedback: Optional[str]
+    approved: Optional[str]
 

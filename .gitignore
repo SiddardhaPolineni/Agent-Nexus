@@ -5,6 +5,9 @@ venv/
 # Environment variables
 .env
 
+#data
+data/*.csv
+
 # Python
 __pycache__/
 *.py[cod]

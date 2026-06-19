@@ -15,64 +15,40 @@ A multi-agent AI assistant built with **LangGraph**, **FastAPI**, and **Streamli
 ```mermaid
 graph TD
     classDef user fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#312e81
-    classDef frontend fill:#dbeafe,stroke:#3b82f6,stroke-width:2px,color:#1e40af
-    classDef backend fill:#d1fae5,stroke:#10b981,stroke-width:2px,color:#065f46
-    classDef guard fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e
-    classDef supervisor fill:#e9d5ff,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
+    classDef orchestrator fill:#e9d5ff,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
     classDef jobagent fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     classDef newsagent fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
     classDef financeagent fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
+    classDef tools fill:#f1f5f9,stroke:#64748b,stroke-width:1.5px,color:#334155
     classDef hitl fill:#fce7f3,stroke:#ec4899,stroke-width:2px,color:#9d174d
-    classDef finalize fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#064e3b
-    classDef storage fill:#f1f5f9,stroke:#64748b,stroke-width:1.5px,color:#334155
     classDef mcp fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#312e81
-    classDef general fill:#f1f5f9,stroke:#64748b,stroke-width:1.5px,color:#374151
-    classDef endnode fill:#f8fafc,stroke:#374151,stroke-width:2px,color:#111827
 
     U[User]:::user
-    ST[Streamlit UI - Port 8501]:::frontend
-    API[FastAPI - SSE Streaming - Port 8000]:::backend
-    GR[Guardrail - Validation + Injection Check]:::guard
-    SUP[Supervisor - Intent Router]:::supervisor
-    GEN[General - Greetings/Chat]:::general
-    JA[Job Search Agent - search_jobs - score_resume - parse_resume]:::jobagent
-    NA[AI News Agent - Tavily Search]:::newsagent
-    FA[Finance Agent - stock_price - market_trend - build_portfolio]:::financeagent
-    JH[Job Review - Human-in-the-Loop]:::hitl
-    FH[Finance Review - Human-in-the-Loop]:::hitl
-    JF[Job Finalize - Save to Tracker]:::finalize
-    FF[Finance Finalize - Save to Tracker]:::finalize
-    CSV[(Local CSV - job_tracker - portfolio)]:::storage
-    MCP{{MCP Server - 6 Tools Exposed}}:::mcp
-    END([END]):::endnode
+    O[Orchestrator - LangGraph Supervisor]:::orchestrator
+    JA[Job Search Agent]:::jobagent
+    NA[AI News Agent]:::newsagent
+    FA[Finance Agent]:::financeagent
+    JT[JSearch API · Resume Parser · Job Tracker]:::tools
+    NT[Tavily Search]:::tools
+    FT[yfinance · Portfolio Builder · Portfolio Tracker]:::tools
+    JH[Human-in-the-Loop]:::hitl
+    FH[Human-in-the-Loop]:::hitl
+    MCP{{MCP Server}}:::mcp
 
-    U -->|Chat| ST
-    ST -->|HTTP/SSE| API
-    API -->|invoke| GR
-    GR -->|pass| SUP
-    GR -.->|blocked| END
-
-    SUP -->|job_search| JA
-    SUP -->|ai_news| NA
-    SUP -->|finance| FA
-    SUP -.->|general| GEN
-
+    U --> O
+    O --> JA
+    O --> NA
+    O --> FA
+    JA --> JT
     JA --> JH
-    NA --> END
+    NA --> NT
+    FA --> FT
     FA --> FH
-    GEN -.-> END
-
-    JH -->|approve/feedback| JF
-    FH -->|approve/feedback| FF
-
-    JF --> END
-    FF --> END
-    JF -.->|save| CSV
-    FF -.->|save| CSV
-
-    MCP -.-|tools| JA
-    MCP -.-|tools| NA
-    MCP -.-|tools| FA
+    JH -->|approve/reject/feedback| U
+    FH -->|approve/reject/feedback| U
+    MCP -.-> JA
+    MCP -.-> NA
+    MCP -.-> FA
 ```
 
 ---

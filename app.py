@@ -46,8 +46,19 @@ st.markdown("""
     
     /* Chat font size */
     .stChatMessage p, .stChatMessage li, .stChatMessage span {
+        font-size: 1.1rem !important;
+        line-height: 1.7 !important;
+    }
+    .stChatMessage h1, .stChatMessage h2, .stChatMessage h3 {
+        font-size: 1.3rem !important;
+    }
+    .stChatMessage code {
+        font-size: 1rem !important;
+    }
+    
+    /* Chat input font */
+    div[data-testid="stChatInput"] textarea {
         font-size: 1.05rem !important;
-        line-height: 1.6 !important;
     }
     
     /* ===== AGENT BADGES ===== */

@@ -13,7 +13,7 @@ A multi-agent AI assistant built with **LangGraph**, **FastAPI**, and **Streamli
 ## Architecture
 
 ```mermaid
-graph TD
+graph LR
     classDef user fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#312e81
     classDef orchestrator fill:#e9d5ff,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
     classDef jobagent fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
@@ -23,30 +23,23 @@ graph TD
     classDef hitl fill:#fce7f3,stroke:#ec4899,stroke-width:2px,color:#9d174d
     classDef mcp fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#312e81
 
-    U[User]:::user
-    O[Orchestrator - LangGraph Supervisor]:::orchestrator
-    JA[Job Search Agent]:::jobagent
-    NA[AI News Agent]:::newsagent
-    FA[Finance Agent]:::financeagent
-    JT[JSearch API · Resume Parser · Job Tracker]:::tools
-    NT[Tavily Search]:::tools
-    FT[yfinance · Portfolio Builder · Portfolio Tracker]:::tools
-    JH[Human-in-the-Loop]:::hitl
-    FH[Human-in-the-Loop]:::hitl
-    MCP{{MCP Server}}:::mcp
+    U[User]:::user --> O[Orchestrator]:::orchestrator
 
-    U --> O
-    O --> JA
-    O --> NA
-    O --> FA
-    JA --> JT
-    JA --> JH
-    NA --> NT
-    FA --> FT
-    FA --> FH
-    JH -->|approve/reject/feedback| U
-    FH -->|approve/reject/feedback| U
-    MCP -.-> JA
+    O --> JA[Job Search Agent]:::jobagent
+    O --> NA[AI News Agent]:::newsagent
+    O --> FA[Finance Agent]:::financeagent
+
+    JA --> JT[JSearch API · Resume Parser · Job Tracker]:::tools
+    NA --> NT[Tavily Search]:::tools
+    FA --> FT[yfinance · Portfolio Builder · Portfolio Tracker]:::tools
+
+    JA --> JH[HITL - Approve / Reject]:::hitl
+    FA --> FH[HITL - Approve / Reject]:::hitl
+
+    JH --> U
+    FH --> U
+
+    MCP{{MCP Server}}:::mcp -.-> JA
     MCP -.-> NA
     MCP -.-> FA
 ```

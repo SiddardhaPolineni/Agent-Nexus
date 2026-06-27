@@ -14,6 +14,7 @@ RAPID_API_HOST = os.getenv("RAPID_API_HOST")
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 JOB_TRACKER_FILE = os.path.join(DATA_DIR, "job_tracker.csv")
 PORTFOLIO_FILE = os.path.join(DATA_DIR, "portfolio.csv")
+GOLDEN_DATASET_PATH = os.path.join(DATA_DIR,"golden_dataset_routing.csv")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 

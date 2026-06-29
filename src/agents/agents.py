@@ -8,7 +8,7 @@ from src.tools.news_tools import search_ai_news
 from src.prompts.agent_prompts import JOB_SEARCH_AGENT_PROMPT, AI_NEWS_AGENT_PROMPT, FINANCE_AGENT_PROMPT
 
 # job search agent
-job_serach_agent = create_react_agent(
+job_search_agent = create_react_agent(
     model = LLM,
     tools = [search_jobs, score_resume, get_job_tracker, parse_resume],
     name = "job_search_agent",

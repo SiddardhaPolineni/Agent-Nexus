@@ -3,7 +3,7 @@ from langsmith import Client
 from langsmith.evaluation import evaluate, EvaluationResult, EvaluationResults
 from config import GOLDEN_DATASET_PATH
 from src.guards.guardrails import run_guardrails
-from src.prompts.agent_prompts import SUPERVISOR_PROMPT
+from src.prompts.agent_prompts import SUPERVISOR_PROMPT, REASONING_PROMPT
 from config import LLM
 import logging
 
@@ -45,12 +45,25 @@ def predict_intent(inputs: dict) -> dict:
     if not guardrail_check["passed"]:
         return {"predicted_intent": "blocked"}
     
-    routing_prompt = SUPERVISOR_PROMPT.format(context = query)
+    intent = ""
+    reasoning = ""
+
+    routing_prompt = REASONING_PROMPT.format(query = query)
     response = LLM.invoke(routing_prompt)
 
-    predicted = response.content.strip().lower().strip("'\"")
+    for line in response.content.split("\n"):
+        if line.lower().startswith("intent:"):
+            intent = line.split(":", 1)[1].strip().lower().strip("'\"")
+        elif line.lower().startswith("reasoning:"):
+            reasoning = line.split(":", 1)[1].strip()
+    
+    # Fallback
+    if not intent:
+        intent = response.content.strip().lower().strip("'\"")
+    if not reasoning:
+        reasoning = "No reasoning provided"
 
-    return {"predicted_intent": predicted}
+    return {"predicted_intent": intent, "reasoning": reasoning}
 
 
 def routing_accuracy(run, example) -> EvaluationResult:

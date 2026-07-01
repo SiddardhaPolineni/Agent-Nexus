@@ -32,7 +32,7 @@ def calculate_agent_metrics(results_df: pd.DataFrame, agent_name: str) -> tuple[
         # expected a different tool but this tool was called
         fp = len(results_df[
             (results_df['expected_tool'] != tool) &
-            (~results_df['tools_called'].str.contains(tool, na=False))
+            (results_df['tools_called'].str.contains(tool, na=False))
         ])
 
         # expected this tool but it was not called.
@@ -82,13 +82,20 @@ def run_agent(agent, query:str) -> dict:
         if hasattr(msg, "name") and msg.name
     ]
 
-    # final response
+    # capture agents reasoning
+    reasoning = ""
+    for msg in result['messages']:
+        if hasattr(msg, 'content') and msg.type == "ai" and msg.content:
+            reasoning = msg.content[:200]
+            break
 
+    # final response
     final_response = result['messages'][-1].content
 
     return {
         "tools_called": tools_called,
-        "response": final_response
+        "response": final_response,
+        "reasoning": reasoning
     }
 
 def check_tool_selection(expected_tool: str, tools_called: list) -> bool:
@@ -159,6 +166,8 @@ def evaluate_agent(agent_name:str, dataset_path:str, agent) -> tuple[pd.DataFram
                 "tool_correct": tool_correct,
                 "content_passed": content_check['passed'],
                 "missing_keywords": ", ".join(content_check['missing']),
+                "reasoning": agent_response["reasoning"],
+                "status": "pass" if tool_correct and content_check["passed"] else "fail",
                 "error": ""
             })
 
@@ -172,6 +181,8 @@ def evaluate_agent(agent_name:str, dataset_path:str, agent) -> tuple[pd.DataFram
                 "tool_correct": False,
                 "content_passed": False,
                 "missing_keywords": "",
+                "reasoning": "",
+                "status": "fail",
                 "error": str(e)
             })
 

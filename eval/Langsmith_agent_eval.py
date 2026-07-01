@@ -45,17 +45,25 @@ def make_target_function(agent):
 
         # Extract tools called
         tools_called = [
-            msg.name for msg in results['messages']
+            msg.name for msg in result['messages']
             if hasattr(msg, "name") and msg.name
         ]
 
-        # Final response
+        # get the reasoning
+        reasoning = ""
 
-        final_response = results["messages"][-1].content
+        for msg in result["messages"]:
+            if msg.type == "ai" and msg.content and hasattr(msg, 'content'):
+                reasoning = msg.content[:200]
+                break
+
+        # Final response
+        final_response = result["messages"][-1].content
 
         return {
             "tools_called": tools_called,
-            "response": final_response
+            "response": final_response,
+            "reasoning": reasoning
         }
     
     return predict

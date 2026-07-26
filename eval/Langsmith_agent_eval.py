@@ -1,8 +1,29 @@
 from langsmith import Client
 import pandas as pd
+import os
+import json
 from langsmith.evaluation import evaluate, EvaluationResult, EvaluationResults
 from langchain_core.messages import HumanMessage
 from src.agents.agents import job_search_agent, ai_news_agent, finance_agent
+
+COUNTER_FILE = "eval/run_counter.json"
+
+
+def get_next_version(counter_key: str) -> int:
+    """Auto-increment version number from a counter file."""
+    if os.path.exists(COUNTER_FILE):
+        with open(COUNTER_FILE) as f:
+            data = json.load(f)
+    else:
+        data = {}
+
+    version = data.get(counter_key, 0) + 1
+    data[counter_key] = version
+
+    with open(COUNTER_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+    return version
 
 def upload_dataset(dataset_path: str, dataset_name: str) -> str:
     """
@@ -171,6 +192,9 @@ def run_agent_eval():
         print(f"Running: {config['name']}")
         print(f"{'='*60}")
 
+        version = get_next_version(config['prefix'])
+        experiment_prefix = f"{config['prefix']}-v{version}"
+
         dataset_name = upload_dataset(config['dataset'], config['name'])
         target_fn = make_target_function(config['agent'])
 
@@ -179,8 +203,10 @@ def run_agent_eval():
             data = dataset_name,
             evaluators = [tool_selection_evaluator, response_content_evaluator],
             summary_evaluators = [tool_summary_metrics],
-            experiment_prefix = config['prefix']
+            experiment_prefix = experiment_prefix
         )
+
+        print(f"✓ {config['name']} complete! Experiment: {experiment_prefix}")
 
 
 

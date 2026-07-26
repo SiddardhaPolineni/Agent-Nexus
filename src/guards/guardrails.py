@@ -66,6 +66,17 @@ def detect_injection(message: str) -> dict:
         "override your",
         "jailbreak",
         "DAN mode",
+        "no restrictions",
+        "no safety",
+        "no content policy",
+        "make a bomb",
+        "make explosives",
+        "phishing email",
+        "steal credentials",
+        "hack into",
+        "break into a system",
+        "write malware",
+        "write a virus"
     ]
     
     message_lower = message.lower()
@@ -94,7 +105,9 @@ def run_guardrails(message: str) -> dict:
     if not injection["safe"]:
         return {"passed": False, "message": injection["reason"]}
     
-    # Skip LLM-based topic check — it's too unreliable and blocks valid queries
-    # The supervisor already handles routing, no need to double-check topic here
+    # 3. LLM-based topic check (catches harmful content that keywords miss)
+    topic = check_topic_allowed(message)
+    if not topic["allowed"]:
+        return {"passed": False, "message": topic["reason"]}
     
     return {"passed": True, "message": ""}

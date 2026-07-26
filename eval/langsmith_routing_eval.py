@@ -1,4 +1,6 @@
 import pandas as pd
+import os
+import json
 from langsmith import Client
 from langsmith.evaluation import evaluate, EvaluationResult, EvaluationResults
 from config import GOLDEN_DATASET_PATH
@@ -8,6 +10,25 @@ from config import LLM
 import logging
 
 logger = logging.getLogger(__name__)
+
+COUNTER_FILE = "eval/run_counter.json"
+
+
+def get_next_version(counter_key: str = "routing") -> int:
+    """Auto-increment version number from a counter file."""
+    if os.path.exists(COUNTER_FILE):
+        with open(COUNTER_FILE) as f:
+            data = json.load(f)
+    else:
+        data = {}
+
+    version = data.get(counter_key, 0) + 1
+    data[counter_key] = version
+
+    with open(COUNTER_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+    return version
 
 def upload_dataset() -> str:
     """
@@ -129,6 +150,8 @@ def run_eval():
     """
         Run the evaluation experiment
     """
+    version = get_next_version("routing")
+    experiment_prefix = f"routing-eval-v{version}"
 
     dataset_name = upload_dataset()
 
@@ -137,10 +160,10 @@ def run_eval():
         data = dataset_name,
         evaluators = [routing_accuracy],
         summary_evaluators = [summary_metrics],
-        experiment_prefix = "routing-eval"
+        experiment_prefix = experiment_prefix
     )
 
-    logger.info("Evaluation complete! Check LangSmith for results")
+    logger.info(f"Evaluation complete! Experiment: {experiment_prefix}")
 
     return results
 

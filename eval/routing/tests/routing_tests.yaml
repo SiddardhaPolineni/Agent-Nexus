@@ -1,0 +1,563 @@
+# Job Search Tests (20)
+- description: "Job Search - software engineer SF"
+  vars:
+    query: "Find me software engineer jobs in San Francisco"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - data scientist NY"
+  vars:
+    query: "Search for data scientist roles in New York"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - AI engineer openings"
+  vars:
+    query: "What are the latest AI engineer openings?"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - resume score"
+  vars:
+    query: "Can you score my resume against a product manager role?"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - remote ML jobs"
+  vars:
+    query: "Show me remote machine learning jobs"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - backend developer"
+  vars:
+    query: "I want to apply for backend developer positions"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - parse resume"
+  vars:
+    query: "Parse my resume and tell me what skills I have"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - match skills"
+  vars:
+    query: "What jobs match my Python and SQL skills?"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - entry level Austin"
+  vars:
+    query: "Find entry level data analyst jobs in Austin"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - resume compare"
+  vars:
+    query: "How does my resume compare to a cloud engineer role?"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - saved applications"
+  vars:
+    query: "Show me my saved job applications"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - DevOps Seattle"
+  vars:
+    query: "Are there any DevOps jobs in Seattle?"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - upload resume"
+  vars:
+    query: "I uploaded my resume, can you check it?"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - LinkedIn frontend"
+  vars:
+    query: "Search LinkedIn for frontend developer roles"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - career options"
+  vars:
+    query: "What career options do I have with React and Node.js skills?"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - internships AI"
+  vars:
+    query: "Find me internships in artificial intelligence"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - score full stack"
+  vars:
+    query: "Score my skills against a full stack developer position"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - NLP engineers"
+  vars:
+    query: "What companies are hiring for NLP engineers?"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - project managers Chicago"
+  vars:
+    query: "Show me job listings for project managers in Chicago"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+- description: "Job Search - healthcare tech"
+  vars:
+    query: "Help me find a new job in the healthcare tech industry"
+  assert:
+    - type: icontains
+      value: "job_search"
+
+# AI News Tests (20)
+- description: "AI News - latest AI news"
+  vars:
+    query: "What's the latest news in artificial intelligence?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - LLM breakthroughs"
+  vars:
+    query: "Tell me about recent breakthroughs in large language models"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - OpenAI updates"
+  vars:
+    query: "Any updates on OpenAI's new releases?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - industry this week"
+  vars:
+    query: "What's happening in the AI industry this week?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - generative AI startups"
+  vars:
+    query: "Show me news about generative AI startups"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - computer vision"
+  vars:
+    query: "What are the latest developments in computer vision?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - regulation"
+  vars:
+    query: "Tell me about recent AI regulation news"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - transformers"
+  vars:
+    query: "Any new research papers on transformer architectures?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - Google Gemini"
+  vars:
+    query: "What's Google doing with Gemini lately?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - trending topics"
+  vars:
+    query: "Show me trending AI topics today"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - autonomous vehicles"
+  vars:
+    query: "What are the latest updates on autonomous vehicles?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - healthcare"
+  vars:
+    query: "Tell me about AI in healthcare news"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - Meta research"
+  vars:
+    query: "Any news about Meta's AI research?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - robotics"
+  vars:
+    query: "What's new in robotics and AI?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - safety alignment"
+  vars:
+    query: "Show me articles about AI safety and alignment"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - conference"
+  vars:
+    query: "What happened at the latest AI conference?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - open source models"
+  vars:
+    query: "Tell me about new open source AI models released this month"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - NVIDIA chips"
+  vars:
+    query: "Any updates on AI chip development by NVIDIA?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - multimodal"
+  vars:
+    query: "What's the latest on multimodal AI systems?"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+- description: "AI News - AI agents"
+  vars:
+    query: "Show me news about AI agents and autonomous systems"
+  assert:
+    - type: icontains
+      value: "ai_news"
+
+# Finance Tests (20)
+- description: "Finance - Apple stock price"
+  vars:
+    query: "What's the current price of Apple stock?"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - Tesla trend"
+  vars:
+    query: "Show me the market trend for Tesla over the past month"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - high risk portfolio"
+  vars:
+    query: "Build me a high risk portfolio with $10000"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - NVIDIA performance"
+  vars:
+    query: "How is NVIDIA performing in the market?"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - Microsoft stock"
+  vars:
+    query: "What's the stock price of Microsoft today?"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - low risk portfolio"
+  vars:
+    query: "Create a low risk investment portfolio for $5000"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - Amazon 6mo trend"
+  vars:
+    query: "Show me the 6 month trend for Amazon stock"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - S&P 500"
+  vars:
+    query: "How is the S&P 500 doing?"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - invest 20k medium"
+  vars:
+    query: "I want to invest $20000 with medium risk tolerance"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - Google stock"
+  vars:
+    query: "What's Google stock trading at right now?"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - saved portfolio"
+  vars:
+    query: "Show me my saved portfolio"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - compare stocks"
+  vars:
+    query: "Compare Tesla and Apple stock performance"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - Bitcoin trend"
+  vars:
+    query: "What's the 1 year trend for Bitcoin?"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - retirement portfolio"
+  vars:
+    query: "Build a diversified portfolio for retirement savings"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - Meta growth"
+  vars:
+    query: "How much has Meta stock grown in 3 months?"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - best stocks"
+  vars:
+    query: "What are the best stocks to invest in right now?"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - AMD data"
+  vars:
+    query: "Show me market data for AMD"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - invest 50k"
+  vars:
+    query: "I have $50000 to invest, suggest an allocation"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - tech sector"
+  vars:
+    query: "What's the daily performance of the tech sector?"
+  assert:
+    - type: icontains
+      value: "finance"
+
+- description: "Finance - Netflix trend"
+  vars:
+    query: "Analyze the market trend for Netflix over the past week"
+  assert:
+    - type: icontains
+      value: "finance"
+
+# General Tests (20)
+- description: "General - hello"
+  vars:
+    query: "Hello!"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - how are you"
+  vars:
+    query: "Hey there, how are you?"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - thanks"
+  vars:
+    query: "Thanks for your help!"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - what can you do"
+  vars:
+    query: "What can you do?"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - good morning"
+  vars:
+    query: "Good morning"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - who are you"
+  vars:
+    query: "Who are you?"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - thank you"
+  vars:
+    query: "That was really helpful, thank you"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - new here"
+  vars:
+    query: "Hi, I'm new here"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - capabilities"
+  vars:
+    query: "What are your capabilities?"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - goodbye"
+  vars:
+    query: "Goodbye, talk later!"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - introduce yourself"
+  vars:
+    query: "Can you introduce yourself?"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - appreciate"
+  vars:
+    query: "Thanks a lot, appreciate it"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - hey nexus"
+  vars:
+    query: "Hey Nexus!"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - how does this work"
+  vars:
+    query: "How does this work?"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - all I needed"
+  vars:
+    query: "That's all I needed, thanks"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - what questions"
+  vars:
+    query: "What kind of questions can I ask you?"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - makes sense"
+  vars:
+    query: "Cool, that makes sense"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - nice to meet"
+  vars:
+    query: "Nice to meet you"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - awesome"
+  vars:
+    query: "You're awesome!"
+  assert:
+    - type: icontains
+      value: "general"
+
+- description: "General - understand capabilities"
+  vars:
+    query: "Help me understand what you can do"
+  assert:
+    - type: icontains
+      value: "general"

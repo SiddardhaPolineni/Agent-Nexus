@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: "Agent Nexus - Agent Eval (Tool Selection & Response Quality)"
+
+prompts:
+  - "{{query}}"
+
+providers:
+  - file://provider.py
+
+tests: file://tests/agent_tests.yaml

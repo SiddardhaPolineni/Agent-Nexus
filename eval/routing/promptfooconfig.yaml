@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: "Agent Nexus - Routing Eval"
+
+prompts:
+  - |
+    You are a routing supervisor for Agent Nexus. Based on the query, decide which agent should handle it.
+
+    Respond in this exact format:
+    Intent: <one of: job_search, ai_news, finance, general>
+    Reasoning: <1-2 sentence explanation of why>
+
+    Query: {{query}}
+
+providers:
+  - openai:chat:gpt-4o
+
+defaultTest:
+  options:
+    provider: openai:chat:gpt-4o
+
+tests: file://tests/routing_tests.yaml

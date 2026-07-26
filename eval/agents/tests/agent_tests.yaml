@@ -1,0 +1,392 @@
+# ==========================================
+# Job Search Agent Tests
+# ==========================================
+
+# search_jobs tool tests
+- description: "Job Search - Python developer NYC"
+  vars:
+    agent: "job_search"
+    query: "Find Python developer jobs in New York"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+    - type: icontains
+      value: "company"
+    - type: icontains
+      value: "link"
+
+- description: "Job Search - data scientist SF"
+  vars:
+    agent: "job_search"
+    query: "Search for data scientist roles in San Francisco"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+    - type: icontains
+      value: "company"
+
+- description: "Job Search - ML engineer openings"
+  vars:
+    agent: "job_search"
+    query: "Show me machine learning engineer openings"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+
+- description: "Job Search - remote backend"
+  vars:
+    agent: "job_search"
+    query: "Find remote backend developer positions"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+
+- description: "Job Search - AI engineer Seattle"
+  vars:
+    agent: "job_search"
+    query: "Search for AI engineer jobs in Seattle"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+
+- description: "Job Search - frontend Austin"
+  vars:
+    agent: "job_search"
+    query: "Find me frontend developer roles in Austin"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+
+- description: "Job Search - DevOps Chicago"
+  vars:
+    agent: "job_search"
+    query: "Show DevOps engineer jobs in Chicago"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+
+- description: "Job Search - cloud architect"
+  vars:
+    agent: "job_search"
+    query: "Search for cloud architect positions in Virginia"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+
+- description: "Job Search - data engineer Boston"
+  vars:
+    agent: "job_search"
+    query: "Find data engineer jobs in Boston"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+
+- description: "Job Search - Java developer Atlanta"
+  vars:
+    agent: "job_search"
+    query: "Find Java developer jobs in Atlanta"
+  assert:
+    - type: icontains
+      value: "search_jobs"
+
+# score_resume tool tests
+- description: "Job Search - score resume SE"
+  vars:
+    agent: "job_search"
+    query: "Score my resume for a software engineer role with skills python, java, sql, git"
+  assert:
+    - type: icontains
+      value: "score_resume"
+    - type: icontains
+      value: "score"
+
+- description: "Job Search - score resume DS"
+  vars:
+    agent: "job_search"
+    query: "How does my resume match a data scientist position? Skills: python, machine learning, sql"
+  assert:
+    - type: icontains
+      value: "score_resume"
+    - type: icontains
+      value: "score"
+
+- description: "Job Search - score resume frontend"
+  vars:
+    agent: "job_search"
+    query: "Evaluate my skills against a frontend developer role: javascript, react, css, html"
+  assert:
+    - type: icontains
+      value: "score_resume"
+
+- description: "Job Search - score resume AI"
+  vars:
+    agent: "job_search"
+    query: "Score my resume for AI engineer with skills python, langchain, fastapi, rag"
+  assert:
+    - type: icontains
+      value: "score_resume"
+
+- description: "Job Search - score resume DE"
+  vars:
+    agent: "job_search"
+    query: "Check how my skills align with data engineer: sql, spark, python, data warehousing"
+  assert:
+    - type: icontains
+      value: "score_resume"
+
+# get_job_tracker tool tests
+- description: "Job Search - view tracker"
+  vars:
+    agent: "job_search"
+    query: "Show me my saved job applications"
+  assert:
+    - type: icontains
+      value: "get_job_tracker"
+
+- description: "Job Search - saved jobs"
+  vars:
+    agent: "job_search"
+    query: "What jobs have I saved so far?"
+  assert:
+    - type: icontains
+      value: "get_job_tracker"
+
+# ==========================================
+# AI News Agent Tests
+# ==========================================
+
+- description: "AI News - latest AI"
+  vars:
+    agent: "ai_news"
+    query: "What's the latest news in artificial intelligence?"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+    - type: icontains
+      value: "url"
+
+- description: "AI News - LLM breakthroughs"
+  vars:
+    agent: "ai_news"
+    query: "Tell me about recent breakthroughs in large language models"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+    - type: icontains
+      value: "url"
+
+- description: "AI News - OpenAI updates"
+  vars:
+    agent: "ai_news"
+    query: "Any updates on OpenAI's new releases?"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+
+- description: "AI News - generative AI"
+  vars:
+    agent: "ai_news"
+    query: "Show me news about generative AI startups"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+
+- description: "AI News - computer vision"
+  vars:
+    agent: "ai_news"
+    query: "What are the latest developments in computer vision?"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+
+- description: "AI News - AI regulation"
+  vars:
+    agent: "ai_news"
+    query: "Tell me about recent AI regulation news"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+
+- description: "AI News - Google Gemini"
+  vars:
+    agent: "ai_news"
+    query: "What's Google doing with Gemini lately?"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+
+- description: "AI News - NVIDIA chips"
+  vars:
+    agent: "ai_news"
+    query: "Any updates on AI chip development by NVIDIA?"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+
+- description: "AI News - AI safety"
+  vars:
+    agent: "ai_news"
+    query: "Show me articles about AI safety and alignment"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+
+- description: "AI News - open source models"
+  vars:
+    agent: "ai_news"
+    query: "Tell me about new open source AI models released this month"
+  assert:
+    - type: icontains
+      value: "search_ai_news"
+
+# ==========================================
+# Finance Agent Tests
+# ==========================================
+
+# get_stock_price tool tests
+- description: "Finance - Apple stock price"
+  vars:
+    agent: "finance"
+    query: "What's the current price of Apple stock?"
+  assert:
+    - type: icontains
+      value: "get_stock_price"
+    - type: icontains
+      value: "price"
+
+- description: "Finance - Tesla stock price"
+  vars:
+    agent: "finance"
+    query: "Show me the stock price for Tesla"
+  assert:
+    - type: icontains
+      value: "get_stock_price"
+    - type: icontains
+      value: "price"
+
+- description: "Finance - Microsoft price"
+  vars:
+    agent: "finance"
+    query: "What's Microsoft trading at right now?"
+  assert:
+    - type: icontains
+      value: "get_stock_price"
+
+- description: "Finance - NVIDIA price"
+  vars:
+    agent: "finance"
+    query: "Get me the current price of NVIDIA"
+  assert:
+    - type: icontains
+      value: "get_stock_price"
+
+- description: "Finance - Google price"
+  vars:
+    agent: "finance"
+    query: "What's Google stock price today?"
+  assert:
+    - type: icontains
+      value: "get_stock_price"
+
+# get_market_trend tool tests
+- description: "Finance - Tesla 1mo trend"
+  vars:
+    agent: "finance"
+    query: "Show me the market trend for Tesla over the past month"
+  assert:
+    - type: icontains
+      value: "get_market_trend"
+    - type: icontains
+      value: "change"
+
+- description: "Finance - Apple 6mo trend"
+  vars:
+    agent: "finance"
+    query: "What's the 6 month trend for Apple stock?"
+  assert:
+    - type: icontains
+      value: "get_market_trend"
+
+- description: "Finance - NVIDIA 3mo trend"
+  vars:
+    agent: "finance"
+    query: "Show me NVIDIA's performance over the last 3 months"
+  assert:
+    - type: icontains
+      value: "get_market_trend"
+
+- description: "Finance - Amazon yearly"
+  vars:
+    agent: "finance"
+    query: "How has Amazon stock performed in the past year?"
+  assert:
+    - type: icontains
+      value: "get_market_trend"
+
+- description: "Finance - Microsoft weekly"
+  vars:
+    agent: "finance"
+    query: "Show me Microsoft's weekly trend"
+  assert:
+    - type: icontains
+      value: "get_market_trend"
+
+# build_portfolio tool tests
+- description: "Finance - high risk portfolio"
+  vars:
+    agent: "finance"
+    query: "Build me a high risk portfolio with $10000"
+  assert:
+    - type: icontains
+      value: "build_portfolio"
+    - type: icontains
+      value: "portfolio"
+
+- description: "Finance - low risk portfolio"
+  vars:
+    agent: "finance"
+    query: "Create a low risk investment portfolio for $5000"
+  assert:
+    - type: icontains
+      value: "build_portfolio"
+
+- description: "Finance - medium risk 20k"
+  vars:
+    agent: "finance"
+    query: "I want to invest $20000 with medium risk tolerance"
+  assert:
+    - type: icontains
+      value: "build_portfolio"
+
+- description: "Finance - conservative 15k"
+  vars:
+    agent: "finance"
+    query: "Build a conservative portfolio with $15000"
+  assert:
+    - type: icontains
+      value: "build_portfolio"
+
+- description: "Finance - aggressive 50k"
+  vars:
+    agent: "finance"
+    query: "Create an aggressive investment plan for $50000"
+  assert:
+    - type: icontains
+      value: "build_portfolio"
+
+# get_portfolio tool tests
+- description: "Finance - view portfolio"
+  vars:
+    agent: "finance"
+    query: "Show me my saved portfolio"
+  assert:
+    - type: icontains
+      value: "get_portfolio"
+
+- description: "Finance - portfolio history"
+  vars:
+    agent: "finance"
+    query: "What's in my current portfolio?"
+  assert:
+    - type: icontains
+      value: "get_portfolio"

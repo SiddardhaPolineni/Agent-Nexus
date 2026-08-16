@@ -76,7 +76,36 @@ def detect_injection(message: str) -> dict:
         "hack into",
         "break into a system",
         "write malware",
-        "write a virus"
+        "write a virus",
+        # Weapons & violence
+        "chemical weapon",
+        "biological weapon",
+        "how to make",
+        "how to build",
+        "how to create a weapon",
+        "indiscriminate weapon",
+        "nerve agent",
+        "poison",
+        "explosive device",
+
+        # Misinformation/propaganda
+        "write propaganda",
+        "spread misinformation",
+        "create fake news",
+        "disinformation campaign",
+
+        # Child safety
+        "child exploitation",
+        "child abuse",
+        "minors",
+        "underage",
+
+        # General harmful
+        "how to kill",
+        "how to harm",
+        "how to hurt",
+        "illegal drug",
+        "synthesize"
     ]
     
     message_lower = message.lower()

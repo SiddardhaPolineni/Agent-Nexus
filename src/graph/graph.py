@@ -2,7 +2,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.types import interrupt 
 from langgraph.checkpoint.memory import MemorySaver
 from src.models.agent_state import AgentState
-from src.agents.agents import job_serach_agent, finance_agent, ai_news_agent
+from src.agents.agents import job_search_agent, finance_agent, ai_news_agent
 from src.tools.tracker_tools import save_portfolio, save_job_to_tracker
 from src.guards.guardrails import run_guardrails
 from src.prompts.agent_prompts import SUPERVISOR_PROMPT, GENERAL_PROMPT
@@ -311,7 +311,7 @@ def build_graph():
     graph.add_node("guardrail", guardrail_node)
     graph.add_node("supervisor", supervisor_node)
     graph.add_node("general", general_node)
-    graph.add_node("job_search", job_serach_agent)
+    graph.add_node("job_search", job_search_agent)
     graph.add_node("ai_news", ai_news_agent)
     graph.add_node("finance", finance_agent)
     graph.add_node("job_review", job_review_node)
